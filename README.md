@@ -16,15 +16,20 @@ Users will be able to create saved tones containing information such as:
 * Amplifier settings
 * Pedal settings
 * Additional notes
+* Audio recording of the tone
 
 Users may also use ToneVault to save files for digital presets such as THR and Katana models.
+
+Users will be able to organize, search, and filter their saved tones. When viewing a tone, users can play back its audio recording and use a guided recreation view that displays the saved amp and pedal settings to help recreate the tone.
 
 ### Backend and Internet Connectivity
 
 ToneVault will use Firebase as its backend. User accounts will be handled through Firebase Authentication, while tone information will be stored using Cloud Firestore. Users will send and receive data from the backend when creating, editing, deleting, and viewing their saved tones. Each tone will be associated with the user who created it.
 
-### Camera Integration
+Audio recordings, photos, and preset files will be stored online and associated with the corresponding saved tone and user.
 
-ToneVault will use the device's camera. Users will be able to take photos of their amplifier, pedalboard, or individual pedals to record knob positions and other settings that may be difficult to describe with only text.
+### Camera and Microphone Integration
 
-These photos will be stored online and associated with the corresponding saved tone and user. This will allow users to use both their recorded settings and photos when trying to recreate a guitar tone.
+ToneVault will use the device's camera and microphone. Users will be able to take photos of their amplifier, pedalboard, or individual pedals to record knob positions and other settings that may be difficult to describe with only text. Users will also be able to record a short audio sample of their guitar tone to use as a reference when recreating it later.
+
+These photos and recordings will be stored online and associated with the corresponding saved tone and user. This will allow users to use their recorded settings, photos, and audio when trying to recreate a guitar tone.
