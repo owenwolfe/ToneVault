@@ -1,30 +1,45 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:tonevault/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
+  testWidgets('save a tone and open its details', (tester) async {
+    await tester.pumpWidget(const ToneVaultApp());
+    await tester.tap(find.text('Login'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    final values = [
+      'My tone', 'My song', 'Telecaster', 'Gain 4', 'Delay 2', 'Practice',
+    ];
+    for (var i = 0; i < values.length; i++) {
+      await tester.enterText(find.byType(TextField).at(i), values[i]);
+    }
+    await tester.ensureVisible(find.text('Save Tone'));
+    await tester.tap(find.text('Save Tone'));
+    await tester.pumpAndSettle();
+    expect(find.text('My tone'), findsOneWidget);
+
+    await tester.tap(find.text('My tone'));
+    await tester.pumpAndSettle();
+    for (final value in values.skip(1)) {
+      expect(find.text(value), findsOneWidget);
+    }
+  });
+
+  testWidgets('blank name stays on the form and back cancels', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: ToneLibraryScreen()));
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '   ');
+    await tester.ensureVisible(find.text('Save Tone'));
+    await tester.tap(find.text('Save Tone'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter a tone name'), findsOneWidget);
+    expect(find.byType(CreateToneScreen), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(ListTile), findsNWidgets(3));
   });
 }
