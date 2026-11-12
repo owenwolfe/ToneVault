@@ -72,8 +72,45 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class ToneLibraryScreen extends StatelessWidget {
+class Tone {
+  const Tone({
+    required this.name,
+    this.artist = '',
+    this.guitar = '',
+    this.ampSettings = '',
+    this.pedalSettings = '',
+    this.notes = '',
+  });
+
+  final String name;
+  final String artist;
+  final String guitar;
+  final String ampSettings;
+  final String pedalSettings;
+  final String notes;
+}
+
+class ToneLibraryScreen extends StatefulWidget {
   const ToneLibraryScreen({super.key});
+
+  @override
+  State<ToneLibraryScreen> createState() => _ToneLibraryScreenState();
+}
+
+class _ToneLibraryScreenState extends State<ToneLibraryScreen> {
+  // kept in memory for now
+  final List<Tone> tones = [
+    const Tone(
+      name: 'Enter Sandman',
+      artist: 'Metallica',
+      guitar: 'ESP - Bridge Pickup',
+      ampSettings: 'Gain: 7  Bass: 6  Mid: 4  Treble: 7',
+      pedalSettings: 'Overdrive - Gain: 3  Level: 8',
+      notes: 'Heavy rhythm tone',
+    ),
+    const Tone(name: 'Clean Tone', guitar: 'Stratocaster'),
+    const Tone(name: 'Blues Lead', guitar: 'Les Paul'),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -94,43 +131,36 @@ class ToneLibraryScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        children: [
-          ListTile(
+      body: ListView.builder(
+        itemCount: tones.length,
+        itemBuilder: (context, index) {
+          final tone = tones[index];
+          return ListTile(
             leading: const Icon(Icons.music_note),
-            title: const Text('Enter Sandman'),
-            subtitle: const Text('Metallica - Distortion'),
+            title: Text(tone.name),
+            subtitle: Text(tone.artist.isEmpty ? tone.guitar : tone.artist),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const ToneDetailsScreen(),
+                  builder: (context) => ToneDetailsScreen(tone: tone),
                 ),
               );
             },
-          ),
-          ListTile(
-            leading: const Icon(Icons.music_note),
-            title: const Text('Clean Tone'),
-            subtitle: const Text('Stratocaster - Clean'),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.music_note),
-            title: const Text('Blues Lead'),
-            subtitle: const Text('Les Paul - Overdrive'),
-            onTap: () {},
-          ),
-        ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          // get the saved tone back from the form
+          final tone = await Navigator.push<Tone>(
             context,
             MaterialPageRoute(
               builder: (context) => const CreateToneScreen(),
             ),
           );
+          if (!mounted || tone == null) return;
+          setState(() => tones.add(tone));
         },
         child: const Icon(Icons.add),
       ),
@@ -138,8 +168,51 @@ class ToneLibraryScreen extends StatelessWidget {
   }
 }
 
-class CreateToneScreen extends StatelessWidget {
+class CreateToneScreen extends StatefulWidget {
   const CreateToneScreen({super.key});
+
+  @override
+  State<CreateToneScreen> createState() => _CreateToneScreenState();
+}
+
+class _CreateToneScreenState extends State<CreateToneScreen> {
+  final name = TextEditingController();
+  final artist = TextEditingController();
+  final guitar = TextEditingController();
+  final ampSettings = TextEditingController();
+  final pedalSettings = TextEditingController();
+  final notes = TextEditingController();
+
+  @override
+  void dispose() {
+    name.dispose();
+    artist.dispose();
+    guitar.dispose();
+    ampSettings.dispose();
+    pedalSettings.dispose();
+    notes.dispose();
+    super.dispose();
+  }
+
+  void saveTone() {
+    if (name.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a tone name')),
+      );
+      return;
+    }
+    Navigator.pop(
+      context,
+      Tone(
+        name: name.text.trim(),
+        artist: artist.text.trim(),
+        guitar: guitar.text.trim(),
+        ampSettings: ampSettings.text.trim(),
+        pedalSettings: pedalSettings.text.trim(),
+        notes: notes.text.trim(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,43 +223,49 @@ class CreateToneScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const TextField(
-            decoration: InputDecoration(
+          TextField(
+            controller: name,
+            decoration: const InputDecoration(
               labelText: 'Tone Name',
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
-          const TextField(
-            decoration: InputDecoration(
+          TextField(
+            controller: artist,
+            decoration: const InputDecoration(
               labelText: 'Artist / Song',
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
-          const TextField(
-            decoration: InputDecoration(
+          TextField(
+            controller: guitar,
+            decoration: const InputDecoration(
               labelText: 'Guitar / Pickup',
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
-          const TextField(
-            decoration: InputDecoration(
+          TextField(
+            controller: ampSettings,
+            decoration: const InputDecoration(
               labelText: 'Amplifier Settings',
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
-          const TextField(
-            decoration: InputDecoration(
+          TextField(
+            controller: pedalSettings,
+            decoration: const InputDecoration(
               labelText: 'Pedal Settings',
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
-          const TextField(
-            decoration: InputDecoration(
+          TextField(
+            controller: notes,
+            decoration: const InputDecoration(
               labelText: 'Notes',
               border: OutlineInputBorder(),
             ),
@@ -204,7 +283,7 @@ class CreateToneScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: saveTone,
             child: const Text('Save Tone'),
           ),
         ],
@@ -214,41 +293,43 @@ class CreateToneScreen extends StatelessWidget {
 }
 
 class ToneDetailsScreen extends StatelessWidget {
-  const ToneDetailsScreen({super.key});
+  const ToneDetailsScreen({super.key, required this.tone});
+
+  final Tone tone;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Enter Sandman'),
+        title: Text(tone.name),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text(
-            'Enter Sandman',
-            style: TextStyle(
+          Text(
+            tone.name,
+            style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const Text('Metallica'),
+          Text(tone.artist),
           const Divider(),
-          const ListTile(
-            title: Text('Guitar'),
-            subtitle: Text('ESP - Bridge Pickup'),
+          ListTile(
+            title: const Text('Guitar'),
+            subtitle: Text(tone.guitar),
           ),
-          const ListTile(
-            title: Text('Amplifier'),
-            subtitle: Text('Gain: 7  Bass: 6  Mid: 4  Treble: 7'),
+          ListTile(
+            title: const Text('Amplifier'),
+            subtitle: Text(tone.ampSettings),
           ),
-          const ListTile(
-            title: Text('Pedals'),
-            subtitle: Text('Overdrive - Gain: 3  Level: 8'),
+          ListTile(
+            title: const Text('Pedals'),
+            subtitle: Text(tone.pedalSettings),
           ),
-          const ListTile(
-            title: Text('Notes'),
-            subtitle: Text('Heavy rhythm tone'),
+          ListTile(
+            title: const Text('Notes'),
+            subtitle: Text(tone.notes),
           ),
           const SizedBox(height: 10),
           ElevatedButton.icon(
@@ -266,7 +347,7 @@ class ToneDetailsScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const RecreationScreen(),
+                  builder: (context) => RecreationScreen(tone: tone),
                 ),
               );
             },
@@ -334,7 +415,9 @@ class SearchScreen extends StatelessWidget {
 }
 
 class RecreationScreen extends StatelessWidget {
-  const RecreationScreen({super.key});
+  const RecreationScreen({super.key, required this.tone});
+
+  final Tone tone;
 
   @override
   Widget build(BuildContext context) {
@@ -344,38 +427,38 @@ class RecreationScreen extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
-        children: const [
+        children: [
           Text(
-            'Enter Sandman',
-            style: TextStyle(
+            tone.name,
+            style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Card(
             child: ListTile(
-              title: Text('Guitar'),
-              subtitle: Text('ESP - Bridge Pickup'),
+              title: const Text('Guitar'),
+              subtitle: Text(tone.guitar),
             ),
           ),
           Card(
             child: ListTile(
-              title: Text('Amplifier'),
+              title: const Text('Amplifier'),
               subtitle: Text(
-                'Gain: 7\nBass: 6\nMid: 4\nTreble: 7\nVolume: 5',
+                tone.ampSettings,
               ),
             ),
           ),
           Card(
             child: ListTile(
-              title: Text('Overdrive Pedal'),
+              title: const Text('Overdrive Pedal'),
               subtitle: Text(
-                'Gain: 3\nTone: 6\nLevel: 8',
+                tone.pedalSettings,
               ),
             ),
           ),
-          Card(
+          const Card(
             child: ListTile(
               leading: Icon(Icons.photo),
               title: Text('Equipment Photo'),
