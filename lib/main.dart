@@ -26,6 +26,7 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RetroScaffold(
+      stageLabel: 'BACKSTAGE / WELCOME',
       appBar: AppBar(
         title: const Text('ToneVault'),
       ),
@@ -121,6 +122,7 @@ class _ToneLibraryScreenState extends State<ToneLibraryScreen> {
   @override
   Widget build(BuildContext context) {
     return RetroScaffold(
+      stageLabel: 'THE RECORD CRATE',
       appBar: AppBar(
         title: const Text('My Tones'),
         actions: [
@@ -259,6 +261,7 @@ class _CreateToneScreenState extends State<CreateToneScreen> {
   @override
   Widget build(BuildContext context) {
     return RetroScaffold(
+      stageLabel: 'SOUNDCHECK / DIAL IT IN',
       appBar: AppBar(
         title: Text(widget.tone == null ? 'Create Tone' : 'Edit Tone'),
       ),
@@ -397,6 +400,7 @@ class _ToneDetailsScreenState extends State<ToneDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return RetroScaffold(
+      stageLabel: 'ON THE SETLIST',
       appBar: AppBar(
         title: Text(tone.name),
       ),
@@ -474,6 +478,7 @@ class SearchScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RetroScaffold(
+      stageLabel: 'TUNE THE FREQUENCY',
       appBar: AppBar(
         title: const Text('Search Tones'),
       ),
@@ -531,6 +536,7 @@ class RecreationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RetroScaffold(
+      stageLabel: 'PLUG IN / PLAY IT BACK',
       appBar: AppBar(
         title: const Text('Recreate Tone'),
       ),

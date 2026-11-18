@@ -107,11 +107,13 @@ class RetroScaffold extends StatelessWidget {
     required this.appBar,
     required this.body,
     this.floatingActionButton,
+    this.stageLabel = 'LIVE AT TONEVAULT',
   });
 
   final PreferredSizeWidget appBar;
   final Widget body;
   final Widget? floatingActionButton;
+  final String stageLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -122,12 +124,17 @@ class RetroScaffold extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 760),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const AsciiSignal(),
-                Expanded(child: body),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AsciiSignal(
+                    stageLabel: stageLabel,
+                    showStage: constraints.maxHeight >= 500,
+                  ),
+                  Expanded(child: body),
+                ],
+              ),
             ),
           ),
         ),
@@ -137,7 +144,14 @@ class RetroScaffold extends StatelessWidget {
 }
 
 class AsciiSignal extends StatefulWidget {
-  const AsciiSignal({super.key});
+  const AsciiSignal({
+    super.key,
+    this.stageLabel = 'LIVE AT TONEVAULT',
+    this.showStage = true,
+  });
+
+  final String stageLabel;
+  final bool showStage;
 
   @override
   State<AsciiSignal> createState() => _AsciiSignalState();
@@ -166,6 +180,54 @@ class _AsciiSignalState extends State<AsciiSignal> {
     super.dispose();
   }
 
+  // Equal-width frames keep the stage still while the player and notes move.
+  static const stageFrames = [
+    r'    __           _     _          O         '
+        '\n'
+        r'   |==|         | |___| |        /|\  __    '
+        '\n'
+        r'   |--|         |_______|       / |==/==/   '
+        '\n'
+        r'  /|  |\        @       @        / \        '
+        '\n'
+        r' (  ()  )     .  .  .  .        _/   \_     '
+        '\n'
+        r'  \____/     ----------------  ----------   ',
+    r'    __          _     _           O   .     '
+        '\n'
+        r'   |==|        | |___| |         /|\  __    '
+        '\n'
+        r'   |--|        |_______|        / |==\==\   '
+        '\n'
+        r'  /|  |\       @       @         / \        '
+        '\n'
+        r' (  ()  )      .  .  .  .       _/   \_     '
+        '\n'
+        r'  \____/     ----------------  ----------   ',
+    r'    __           _     _         \O/        '
+        '\n'
+        r'   |==|         | |___| |          |   __   '
+        '\n'
+        r'   |--|         |_______|       .  |==/==/  '
+        '\n'
+        r'  /|  |\        @       @        / \        '
+        '\n'
+        r' (  ()  )     .  .  .  .        _/   \_     '
+        '\n'
+        r'  \____/     ----------------  ----------   ',
+    r'    __            _     _          O        '
+        '\n'
+        r'   |==|          | |___| |        /|\  __   '
+        '\n'
+        r'   |--|          |_______|       / |==\==\  '
+        '\n'
+        r'  /|  |\         @       @     .  / \       '
+        '\n'
+        r' (  ()  )      .  .  .  .        _/   \_    '
+        '\n'
+        r'  \____/     ----------------  ----------   ',
+  ];
+
   @override
   Widget build(BuildContext context) {
     const signals = [
@@ -175,7 +237,7 @@ class _AsciiSignalState extends State<AsciiSignal> {
       '||/ __/|__ /||/ __/|__',
     ];
     return Semantics(
-      label: 'ToneVault. Your personal tone archive.',
+      label: 'ToneVault. Your personal tone archive. Decorative guitar stage.',
       child: ExcludeSemantics(
         child: Container(
           margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -187,21 +249,54 @@ class _AsciiSignalState extends State<AsciiSignal> {
               BoxShadow(color: Color(0xFF999999), offset: Offset(4, 4)),
             ],
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '[ TONEVAULT / SIGNAL ARCHIVE ]\n'
-              '${signals[frame]}   [ LOCAL ]\n'
-              'SAVE. TWEAK. PLUG IN. REPEAT.',
-              style: const TextStyle(
-                fontFamily: 'monospace',
-                color: Colors.white,
-                fontSize: 12,
-                height: 1.5,
-                letterSpacing: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '[ TONEVAULT / SIGNAL ARCHIVE ]\n'
+                  '${signals[frame]}   [ LOCAL ]\n'
+                  'SAVE. TWEAK. PLUG IN. REPEAT.',
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    color: Colors.white,
+                    fontSize: 12,
+                    height: 1.5,
+                    letterSpacing: 1,
+                  ),
+                ),
               ),
-            ),
+              if (widget.showStage) ...[
+                const Divider(color: Color(0xFF777777), height: 16),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    stageFrames[frame],
+                    key: const ValueKey('ascii-stage'),
+                    textDirection: TextDirection.ltr,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      color: Color(0xFFDDDDDD),
+                      fontSize: 11,
+                      height: 1.15,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '[ ${widget.stageLabel} ]',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 9,
+                    letterSpacing: 1,
+                    color: Color(0xFFBBBBBB),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),
