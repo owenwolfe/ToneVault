@@ -98,7 +98,8 @@ class ToneLibraryScreen extends StatefulWidget {
 }
 
 class _ToneLibraryScreenState extends State<ToneLibraryScreen> {
-  // kept in memory for now
+  // The library owns the tones; forms return values and details use callbacks.
+  // Kept in memory for now.
   final List<Tone> tones = [
     const Tone(
       name: 'Enter Sandman',
@@ -143,7 +144,15 @@ class _ToneLibraryScreenState extends State<ToneLibraryScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ToneDetailsScreen(tone: tone),
+                  builder: (context) => ToneDetailsScreen(
+                    tone: tone,
+                    onChanged: (updatedTone) {
+                      setState(() => tones[index] = updatedTone);
+                    },
+                    onDeleted: () {
+                      setState(() => tones.removeAt(index));
+                    },
+                  ),
                 ),
               );
             },
@@ -169,7 +178,9 @@ class _ToneLibraryScreenState extends State<ToneLibraryScreen> {
 }
 
 class CreateToneScreen extends StatefulWidget {
-  const CreateToneScreen({super.key});
+  const CreateToneScreen({super.key, this.tone});
+
+  final Tone? tone;
 
   @override
   State<CreateToneScreen> createState() => _CreateToneScreenState();
@@ -182,6 +193,19 @@ class _CreateToneScreenState extends State<CreateToneScreen> {
   final ampSettings = TextEditingController();
   final pedalSettings = TextEditingController();
   final notes = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final tone = widget.tone;
+    if (tone == null) return;
+    name.text = tone.name;
+    artist.text = tone.artist;
+    guitar.text = tone.guitar;
+    ampSettings.text = tone.ampSettings;
+    pedalSettings.text = tone.pedalSettings;
+    notes.text = tone.notes;
+  }
 
   @override
   void dispose() {
@@ -218,7 +242,7 @@ class _CreateToneScreenState extends State<CreateToneScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Tone'),
+        title: Text(widget.tone == null ? 'Create Tone' : 'Edit Tone'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -292,10 +316,63 @@ class _CreateToneScreenState extends State<CreateToneScreen> {
   }
 }
 
-class ToneDetailsScreen extends StatelessWidget {
-  const ToneDetailsScreen({super.key, required this.tone});
+class ToneDetailsScreen extends StatefulWidget {
+  const ToneDetailsScreen({
+    super.key,
+    required this.tone,
+    required this.onChanged,
+    required this.onDeleted,
+  });
 
   final Tone tone;
+  final ValueChanged<Tone> onChanged;
+  final VoidCallback onDeleted;
+
+  @override
+  State<ToneDetailsScreen> createState() => _ToneDetailsScreenState();
+}
+
+class _ToneDetailsScreenState extends State<ToneDetailsScreen> {
+  late Tone tone;
+
+  @override
+  void initState() {
+    super.initState();
+    tone = widget.tone;
+  }
+
+  Future<void> editTone() async {
+    final updatedTone = await Navigator.push<Tone>(
+      context,
+      MaterialPageRoute(builder: (context) => CreateToneScreen(tone: tone)),
+    );
+    if (!mounted || updatedTone == null) return;
+    widget.onChanged(updatedTone);
+    setState(() => tone = updatedTone);
+  }
+
+  Future<void> deleteTone() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Tone?'),
+        content: Text('Delete "${tone.name}" from your library?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+    widget.onDeleted();
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -332,6 +409,16 @@ class ToneDetailsScreen extends StatelessWidget {
             subtitle: Text(tone.notes),
           ),
           const SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: editTone,
+            icon: const Icon(Icons.edit),
+            label: const Text('Edit Tone'),
+          ),
+          ElevatedButton.icon(
+            onPressed: deleteTone,
+            icon: const Icon(Icons.delete),
+            label: const Text('Delete Tone'),
+          ),
           ElevatedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.play_arrow),
