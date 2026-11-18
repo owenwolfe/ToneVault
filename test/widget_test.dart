@@ -3,6 +3,36 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tonevault/main.dart';
 
 void main() {
+  testWidgets('retro banner animates and empty media explains what is missing', (tester) async {
+    await tester.pumpWidget(const ToneVaultApp());
+    expect(tester.widget<MaterialApp>(find.byType(MaterialApp)).debugShowCheckedModeBanner, isFalse);
+    final signal = find.textContaining('[ TONEVAULT / SIGNAL ARCHIVE ]');
+    final firstFrame = tester.widget<Text>(signal).data;
+    await tester.pump(const Duration(milliseconds: 550));
+    expect(tester.widget<Text>(signal).data, isNot(firstFrame));
+    await tester.tap(find.text('Login'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enter Sandman'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Play Tone Recording'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Play Tone Recording'));
+    await tester.pumpAndSettle();
+    expect(find.text('This tone has no saved audio recording.'), findsOneWidget);
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('View Equipment Photo'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('View Equipment Photo'));
+    await tester.pumpAndSettle();
+    expect(find.text('This tone has no saved equipment photo.'), findsOneWidget);
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('edit, recreate, and delete a saved tone', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: ToneLibraryScreen()));
     await tester.tap(find.text('Enter Sandman'));

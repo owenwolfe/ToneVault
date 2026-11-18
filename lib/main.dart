@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'retro.dart';
+
 void main() {
   runApp(const ToneVaultApp());
 }
@@ -11,9 +13,8 @@ class ToneVaultApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ToneVault',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: retroTheme(),
       home: const LoginScreen(),
     );
   }
@@ -24,16 +25,19 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return RetroScaffold(
       appBar: AppBar(
         title: const Text('ToneVault'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.music_note, size: 80),
+            const Text('TONE / VAULT',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 3)),
+            const SizedBox(height: 8),
+            const Text('YOUR SOUND. ON FILE.'),
             const SizedBox(height: 20),
             const TextField(
               decoration: InputDecoration(
@@ -62,7 +66,8 @@ class LoginScreen extends StatelessWidget {
               child: const Text('Login'),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () => showNotice(context, 'Local demo',
+                'Accounts are not connected yet. Tap Login to explore your local tone library.'),
               child: const Text('Create Account'),
             ),
           ],
@@ -115,7 +120,7 @@ class _ToneLibraryScreenState extends State<ToneLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return RetroScaffold(
       appBar: AppBar(
         title: const Text('My Tones'),
         actions: [
@@ -132,13 +137,26 @@ class _ToneLibraryScreenState extends State<ToneLibraryScreen> {
           ),
         ],
       ),
-      body: ListView.builder(
+      body: tones.isEmpty
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  '[ ARCHIVE EMPTY ]\n\nTap + to save your first tone.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          : ListView.builder(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
         itemCount: tones.length,
         itemBuilder: (context, index) {
           final tone = tones[index];
           return ListTile(
+            tileColor: Colors.white,
             leading: const Icon(Icons.music_note),
-            title: Text(tone.name),
+            trailing: const Icon(Icons.chevron_right),
+            title: Text(tone.name, style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(tone.artist.isEmpty ? tone.guitar : tone.artist),
             onTap: () {
               Navigator.push(
@@ -240,7 +258,7 @@ class _CreateToneScreenState extends State<CreateToneScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return RetroScaffold(
       appBar: AppBar(
         title: Text(widget.tone == null ? 'Create Tone' : 'Edit Tone'),
       ),
@@ -296,12 +314,14 @@ class _CreateToneScreenState extends State<CreateToneScreen> {
           ),
           const SizedBox(height: 20),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () => showNotice(context, 'Camera unavailable',
+              'Equipment photo capture is not available yet. You can save your settings as text.'),
             icon: const Icon(Icons.camera_alt),
             label: const Text('Take Equipment Photo'),
           ),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () => showNotice(context, 'Recording unavailable',
+              'Audio recording is not available yet. You can describe your tone in Notes.'),
             icon: const Icon(Icons.mic),
             label: const Text('Record Tone'),
           ),
@@ -376,7 +396,7 @@ class _ToneDetailsScreenState extends State<ToneDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return RetroScaffold(
       appBar: AppBar(
         title: Text(tone.name),
       ),
@@ -420,12 +440,14 @@ class _ToneDetailsScreenState extends State<ToneDetailsScreen> {
             label: const Text('Delete Tone'),
           ),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () => showNotice(context, 'No recording',
+              'This tone has no saved audio recording.'),
             icon: const Icon(Icons.play_arrow),
             label: const Text('Play Tone Recording'),
           ),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () => showNotice(context, 'No equipment photo',
+              'This tone has no saved equipment photo.'),
             icon: const Icon(Icons.photo),
             label: const Text('View Equipment Photo'),
           ),
@@ -451,7 +473,7 @@ class SearchScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return RetroScaffold(
       appBar: AppBar(
         title: const Text('Search Tones'),
       ),
@@ -508,7 +530,7 @@ class RecreationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return RetroScaffold(
       appBar: AppBar(
         title: const Text('Recreate Tone'),
       ),
@@ -545,11 +567,13 @@ class RecreationScreen extends StatelessWidget {
               ),
             ),
           ),
-          const Card(
+          Card(
             child: ListTile(
-              leading: Icon(Icons.photo),
-              title: Text('Equipment Photo'),
-              subtitle: Text('Tap to view saved knob positions'),
+              onTap: () => showNotice(context, 'No equipment photo',
+                'This tone has no saved equipment photo.'),
+              leading: const Icon(Icons.photo),
+              title: const Text('Equipment Photo'),
+              subtitle: const Text('No photo attached'),
             ),
           ),
         ],
